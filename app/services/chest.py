@@ -16,9 +16,13 @@ FREE_CHANCE = 100
 BOOST_STEP_RUB = 100
 BOOST_STEP_PERCENT = 10
 BOOST_MAX_PERCENT = 50
-SPIN_MIN = 10
-SPIN_MAX = 500
-FREE_PRIZE = SPIN_MAX
+SPIN_MIN = 10  # диапазон на колесе (10–700 ₽)
+SPIN_LOW_MIN = 20
+SPIN_LOW_MAX = 100
+SPIN_HIGH_MIN = 101
+SPIN_HIGH_MAX = 700
+SPIN_HIGH_CHANCE = 0.10
+FREE_PRIZE = 500  # пол для платного усиления (legacy)
 BOOST_PRIZE_MIN = 500
 BOOST_PRIZE_MAX = 1000
 BOOST_PRIZE_STEP = 50
@@ -62,12 +66,19 @@ def _real_boost_prize(dice, chance: int, floor: int) -> int:
 
 
 def spin_amount(dice) -> int:
+    high_tier = float(dice.random()) < SPIN_HIGH_CHANCE
+    low, high = (
+        (SPIN_HIGH_MIN, SPIN_HIGH_MAX)
+        if high_tier
+        else (SPIN_LOW_MIN, SPIN_LOW_MAX)
+    )
     picker = getattr(dice, "randrange", None)
     if picker is None:
-        rolled = SPIN_MIN + int(float(dice.random()) * (SPIN_MAX - SPIN_MIN + 1))
+        span = high - low + 1
+        rolled = low + int(float(dice.random()) * span)
     else:
-        rolled = int(picker(SPIN_MIN, SPIN_MAX + 1))
-    return max(SPIN_MIN, min(SPIN_MAX, rolled))
+        rolled = int(picker(low, high + 1))
+    return max(low, min(high, rolled))
 
 
 def _today() -> str:
@@ -206,7 +217,7 @@ class ChestService:
                 {
                     "ok": True,
                     "win": credited > 0,
-                    "jackpot": credited >= SPIN_MAX,
+                    "jackpot": credited >= SPIN_HIGH_MAX,
                     "prize": credited,
                     "sector": prize,
                     "boosted": False,

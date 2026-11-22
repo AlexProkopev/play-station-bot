@@ -9,7 +9,7 @@ from app.services import users as users_module
 from app.services.chest import FREE_PRIZE, ChestService
 from app.services.coupons import CouponService
 from app.services.referrals import complete_product_purchase
-from app.services.users import BONUS_BALANCE_CAP, BONUS_CAP_NOTICE, UserService
+from app.services.users import BONUS_BALANCE_CAP, BONUS_CAP_NOTICE, WELCOME_BONUS_AMOUNT, UserService
 
 
 class _AlwaysWin:
@@ -18,6 +18,19 @@ class _AlwaysWin:
 
 
 class BonusBalanceCapTests(unittest.TestCase):
+    def test_welcome_bonus_only_once_for_new_user(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            patches = self._user_patches(temp_dir)
+            with patches[0], patches[1]:
+                UserService.reset_runtime_cache()
+                UserService.add_user(99, "newbie")
+                first = UserService.grant_welcome_bonus(99)
+                self.assertTrue(first["granted"])
+                self.assertEqual(first["credited"], WELCOME_BONUS_AMOUNT)
+                self.assertEqual(UserService.get_balance(99), WELCOME_BONUS_AMOUNT)
+                second = UserService.grant_welcome_bonus(99)
+                self.assertFalse(second["granted"])
+                self.assertEqual(UserService.get_balance(99), WELCOME_BONUS_AMOUNT)
     def _user_patches(self, temp_dir: str):
         return (
             patch.object(users_module, "USERS_FILE", os.path.join(temp_dir, "users_db.json")),
@@ -141,7 +154,7 @@ class BonusBalanceCapTests(unittest.TestCase):
                 self.assertTrue(won.get("ok"))
                 self.assertTrue(won.get("win"))
                 self.assertGreaterEqual(float(won.get("prize") or 0), 10)
-                self.assertLessEqual(float(won.get("prize") or 0), 500)
+                self.assertLessEqual(float(won.get("prize") or 0), 700)
                 self.assertEqual(UserService.get_balance(71), 1500.0 + float(won.get("prize") or 0))
 
 

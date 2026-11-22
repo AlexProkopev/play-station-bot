@@ -16,6 +16,7 @@ CANCEL_CRITICAL_COUNT = 29
 CANCEL_BAN_HOURS = 12
 USER_CACHE_TTL_SECONDS = 1.5
 BONUS_BALANCE_CAP = 1500.0
+WELCOME_BONUS_AMOUNT = 50.0
 BONUS_CAP_NOTICE = (
     "🔶 <b>Потолок бонусов Store</b>\n\n"
     "В кошельке уже <b>1500 ₽</b> бонусами. Промокоды, ежедневный бонус, "
@@ -193,6 +194,7 @@ class UserService:
             "last_bot_id": None,
             "spin_games": 0,
             "spin_winnings": 0.0,
+            "welcome_bonus_granted": False,
         }
 
     @staticmethod
@@ -244,9 +246,11 @@ class UserService:
             user["username"] = username
         if not user.get("active", True):
             user["active"] = True
+        if "welcome_bonus_granted" not in user:
+            user["welcome_bonus_granted"] = True
         defaults = UserService._build_default_user(username)
         for key, value in defaults.items():
-            if key == "joined":
+            if key in {"joined", "welcome_bonus_granted"}:
                 continue
             if key not in user:
                 user[key] = value
@@ -581,6 +585,34 @@ class UserService:
 
         payload = cls._update_user(user_id, mutate, create=True)
         return payload if isinstance(payload, dict) else result
+
+    @classmethod
+    def grant_welcome_bonus(cls, user_id: int) -> dict:
+        """One-time +50 RUB for brand-new accounts (after captcha)."""
+        result = {
+            "granted": False,
+            "credited": 0.0,
+            "balance": 0.0,
+        }
+
+        def mutate(user):
+            if user.get("welcome_bonus_granted"):
+                result["balance"] = cls._as_balance(user.get("balance"))
+                return result
+            credited, _notify = cls._apply_balance_credit(
+                user,
+                WELCOME_BONUS_AMOUNT,
+                source="bonus",
+                user_id=user_id,
+            )
+            user["welcome_bonus_granted"] = True
+            result["granted"] = credited > 0
+            result["credited"] = credited
+            result["balance"] = cls._as_balance(user.get("balance"))
+            return result
+
+        payload = cls._update_user(user_id, mutate, create=False)
+        return payload if isinstance(payload, dict) and "granted" in payload else result
 
     @classmethod
     def consume_bonus_cap_notice(cls, user_id: int) -> str | None:

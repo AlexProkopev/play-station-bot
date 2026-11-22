@@ -3738,6 +3738,7 @@ async def process_captcha(message: Message, state: FSMContext, bot: Bot):
         UserService.touch_last_bot(message.from_user.id, bot.id)
         BotStatsService.note_captcha(message.from_user.id, is_new=bool(is_new))
 
+        welcome_prefix = None
         if is_new:
             ref_info = f" (по приглашению {referrer_id})" if referrer_id else ""
             await notify_admin(
@@ -3746,8 +3747,17 @@ async def process_captcha(message: Message, state: FSMContext, bot: Bot):
             )
             if referrer_id:
                 ReferralRaceService.note_gray(referrer_id, message.from_user.id)
+            welcome = UserService.grant_welcome_bonus(message.from_user.id)
+            if welcome.get("granted"):
+                credited = int(round(float(welcome.get("credited") or 0)))
+                balance = kb.format_price_label(welcome.get("balance"))
+                welcome_prefix = (
+                    "🎁 <b>Добро пожаловать в PlayStation™Store!</b>\n\n"
+                    f"На кошелёк зачислено <b>+{credited} ₽</b> (приветственный бонус).\n"
+                    f"Баланс: <b>{balance} ₽</b> — можно оплатить покупку с кошелька."
+                )
 
-        await send_home_to_chat(message.bot, message.chat.id, state=state)
+        await send_home_to_chat(message.bot, message.chat.id, state=state, prefix=welcome_prefix)
         return
 
     if kind == "math":

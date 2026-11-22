@@ -9,7 +9,11 @@ from app.services.chest import (
     FREE_PRIZE,
     ChestService,
     boost_percent_for_rub,
+    spin_amount,
     win_chance,
+    SPIN_HIGH_MAX,
+    SPIN_LOW_MAX,
+    SPIN_LOW_MIN,
 )
 from app.services.users import UserService
 
@@ -27,6 +31,14 @@ class _FixedDice:
 
 
 class ChestServiceTests(unittest.TestCase):
+    def test_spin_amount_low_and_high_tiers(self) -> None:
+        low = spin_amount(_FixedDice(0.5, prize=55))
+        self.assertGreaterEqual(low, SPIN_LOW_MIN)
+        self.assertLessEqual(low, SPIN_LOW_MAX)
+        high = spin_amount(_FixedDice(0.01, prize=450))
+        self.assertGreater(high, SPIN_LOW_MAX)
+        self.assertLessEqual(high, SPIN_HIGH_MAX)
+
     def test_boost_percent_and_chance(self) -> None:
         self.assertEqual(boost_percent_for_rub(100), 10)
         self.assertEqual(boost_percent_for_rub(500), 50)
@@ -69,11 +81,11 @@ class ChestServiceTests(unittest.TestCase):
             ), patch.object(chest_module, "_today", return_value="2026-09-03"):
                 UserService.reset_runtime_cache()
                 UserService.add_user(12, "miss")
-                result = ChestService.open(12, rng=_FixedDice(0.99))
+                result = ChestService.open(12, rng=_FixedDice(0.99, prize=65))
                 self.assertTrue(result["ok"])
                 self.assertTrue(result["win"])
-                self.assertGreaterEqual(result["prize"], 10)
-                self.assertLessEqual(result["prize"], 500)
+                self.assertGreaterEqual(result["prize"], SPIN_LOW_MIN)
+                self.assertLessEqual(result["prize"], SPIN_LOW_MAX)
                 self.assertEqual(UserService.get_balance(12), float(result["prize"]))
 
     def test_boost_does_not_change_daily_free_open(self) -> None:
@@ -88,12 +100,12 @@ class ChestServiceTests(unittest.TestCase):
                 UserService.reset_runtime_cache()
                 UserService.add_user(13, "boost")
                 ChestService.grant_boost(13, 300)
-                miss = ChestService.open(13, rng=_FixedDice(0.99))
+                miss = ChestService.open(13, rng=_FixedDice(0.99, prize=40))
                 self.assertTrue(miss["ok"])
                 self.assertTrue(miss["win"])
                 self.assertFalse(miss["boosted"])
-                self.assertGreaterEqual(miss["prize"], 10)
-                self.assertLessEqual(miss["prize"], 500)
+                self.assertGreaterEqual(miss["prize"], SPIN_LOW_MIN)
+                self.assertLessEqual(miss["prize"], SPIN_LOW_MAX)
                 self.assertEqual(UserService.get_balance(13), float(miss["prize"]))
                 again = ChestService.open(13, rng=_FixedDice(0.0))
                 self.assertFalse(again.get("ok"))
