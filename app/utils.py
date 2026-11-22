@@ -75,7 +75,7 @@ async def send_home_to_chat(
     try:
         await bot.send_message(
             int(chat_id),
-            "🛒 <b>Панель Store</b>\n«Начать покупку» — выбор города и товаров. «На главную» — стартовый экран.",
+            "🛒 <b>Панель Store</b>\n«Купить» — выбор города и товаров. «На главную» — стартовый экран.",
             reply_markup=kb.get_base_keyboard(int(chat_id)),
             disable_web_page_preview=True,
         )

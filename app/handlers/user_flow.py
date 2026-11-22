@@ -3985,7 +3985,7 @@ async def _show_purchases_card(message: Message, user_id: int) -> None:
     )
 
 
-@router.message(F.text.in_({kb.BTN_BUY, kb.BTN_BUY_LEGACY, "В магазин", "🛒 Купить"}))
+@router.message(F.text.in_({kb.BTN_BUY, kb.BTN_BUY_LEGACY, kb.BTN_BUY_OLD, "В магазин", "Купить"}))
 async def valley_open_shop(message: Message, state: FSMContext):
     await _open_valley_shop(message, state, message.from_user.id)
 
