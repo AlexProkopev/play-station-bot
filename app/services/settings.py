@@ -518,7 +518,7 @@ class SettingsService:
         if isinstance(value, str) and value.strip():
             return value.strip()
         return (
-            "📡 <b>Связь со Store</b>\n\n"
+            "📡 <b>Связь с магазином</b>\n\n"
             f"Вопросы по заказам: {SettingsService.get_support_contact()}"
         )
 

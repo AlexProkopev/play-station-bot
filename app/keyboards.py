@@ -11,7 +11,7 @@ BTN_BACK = "⬅️ К списку"
 BTN_CANCEL = "↩️ На главную"
 BTN_DISMISS = "⏹ Закрыть окно"
 BTN_OTHER_CITY = "🌍 Другой город доставки"
-BTN_CONTACTS = "📡 Связь со Store"
+BTN_CONTACTS = "📡 Связь с магазином"
 BTN_CHEST = "🏆 Ежедневный бонус"
 BTN_ROULETTE = "🎲 Розыгрыш призов"
 BTN_COUPON = "🎟 Ввести промокод"
@@ -175,6 +175,7 @@ def get_main_menu_keyboard():
             InlineKeyboardButton(text=BTN_RULES, callback_data="menu_rules"),
             InlineKeyboardButton(text=BTN_DISPUTE, callback_data="menu_dispute"),
         ],
+        [InlineKeyboardButton(text=BTN_CONTACTS, callback_data="menu_contacts")],
     ])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 

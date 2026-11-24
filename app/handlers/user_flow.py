@@ -3800,7 +3800,7 @@ async def _handle_legacy_menu_text(message: Message, state: FSMContext, bot: Bot
     if city_name in {kb.BTN_ALL_CITIES_REVIEWS, "СИГНАЛЫ"}:
         await _open_all_cities_reviews_message(message, state)
         return True
-    if city_name in {kb.BTN_CONTACTS, "СВЯЗЬ"}:
+    if city_name in {kb.BTN_CONTACTS, "📡 Связь со Store", "СВЯЗЬ"}:
         await show_contacts(message)
         return True
     if city_name in {kb.BTN_GUIDE, "мануал"}:

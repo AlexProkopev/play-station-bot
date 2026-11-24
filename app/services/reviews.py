@@ -2359,8 +2359,8 @@ class ReviewsService:
     ) -> str:
         lines = [
             "⭐ <b>Отзывы PlayStation™Store</b>",
-            "<code>После покупки оценка открывается в течение суток</code>",
-            "👤 <b>Скрыто</b>",
+            "<code>Имена клиентов скрыты для защиты конфиденциальности</code>",
+            "👤 <b>Anonymous</b>",
         ]
         if city:
             lines.append(f"🌍 Город: <b>{html.escape(str(city))}</b>")
